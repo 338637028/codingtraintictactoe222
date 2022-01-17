@@ -1,7 +1,7 @@
 # 149: TIC TAC TOE
 __Original project/chellenge from [here](https://thecodingtrain.com/CodingChallenges/149-tic-tac-toe.html)__
 
-__Play _our_ project [here](https://338637028.github.io/codingtraintictactoe222/)__
+__Play _our_ refactorings [here](https://338637028.github.io/codingtraintictactoe222/)__
 
 __index.html, sketch.js, style.css__ from original coding challenge
 
