@@ -24,14 +24,16 @@ let currentPlayer;
 let available = [];
 //Wait till next user play
 let wait = true;
-//X position of the mous click
+//X position of the mouse click
 let posX;
-//Y position of the mous click
+//Y position of the mouse click
 let posY;
 //Container for checkbox switch
 let toggleSwitch;
 // canvas coordinate offset
 let offset;
+// button for restart of the game
+let newGame;               
 
 //Function that setsup how the canvas should look like
 function setup() {
@@ -59,6 +61,10 @@ function setup() {
   resultP.style("font-size", "32pt");
   //Setting the text colour
   resultP.style("color", "black");
+  
+  // create button 
+  newGame = createP('');
+  newGame.html("<button onclick=\"restart()\">New Game</button>");
 
   //Register event handler for mouse click on canvas
   canvas.addEventListener("click", mousePos, true);
@@ -89,6 +95,51 @@ function logBoard() {
     }
   }
 }
+
+// New Game button event handler - reset the game
+function restart(){
+  board = [
+    ['', '', ''],
+    ['', '', ''],
+    ['', '', ''],
+  ];
+  available = [];
+  for (let j = 0; j < 3; j++) {
+    for (let i = 0; i < 3; i++) {
+      available.push([i, j]);
+    }
+  }
+  resultP.html("");
+  document.getElementById("chkSmartPlay").disabled = false;
+}
+
+// Finds two symbols are in diagonal
+// ch - symbol to find
+// return true if found, false otherwise
+ function isDiagonal(ch){
+   return (board[0][0] === board[2][2] && board[0][0] === ch) || (board[2][0] === board[0][2] && board[2][0] === ch)
+}
+
+// Finds index of the symbol in diagonal corner
+// ch - symbol to find
+// return index if found, -1 otherwise
+function FindDiagonal(ch){
+   if(board[0][0] === ch) {
+     return findAvailableIndex(2, 2);
+   }
+   else if (board[2][2] === ch){
+     return findAvailableIndex(0, 0);       
+   }
+   else if (board[0][2] === ch){
+     return findAvailableIndex(2, 0);       
+   }
+   else if (board[2][0] === ch){
+     return findAvailableIndex(0, 2);       
+   }  
+   else
+     return -1;
+}
+
 
 //Finds index in available array that match row and column index
 //cor - column index
@@ -270,10 +321,14 @@ function nextTurn() {
 
 //Machine play next move strategicaly choosing position to play from available spots
 function nextTurnSmart() {
-  var spot; // coordinates of the played box
-
-  //If start first choose the centre to play
-  if (available.length === 9) spot = available.splice(4, 1)[0];
+  let spot; // coordinates of the played box
+  let startIndexes = [0,2,4,6,8]; //position to choose for the game start
+  
+  // if start first choose the one of indexes
+  if(available.length === 9){
+    let startIx = floor(random(startIndexes.length));
+    spot = available.splice(startIndexes[startIx], 1)[0];
+  }
   else {
     //Try to win first, then try to block opponent win, the last try to play corner boxes if available else play side boxes.
     //Check if win is available for machine
@@ -315,16 +370,26 @@ function nextTurnSmart() {
         //Take central box
         spot = available.splice(ix, 1)[0];
       else {
-        //Second option is to play corner boxes
-        var corners = findCornerElemnts();
-        if (corners.length > 0) {
-          //Play random corner if available
-          let index = floor(random(corners.length));
-          spot = available.splice(corners[index], 1)[0];
-        } else {
-          //Play random boxes that are available and are not corners
-          let index = floor(random(available.length));
+        if (available.length === 7 && board[1][1] === 'X'){
+            let index = FindDiagonal('O');
+            spot = available.splice(index, 1)[0];
+        }
+        else if (available.length === 6 && isDiagonal('X')){
+          let index = findAvailableIndex(0, 1);
           spot = available.splice(index, 1)[0];
+        }
+        else{       
+          //Second option is to play corner boxes
+          var corners = findCornerElemnts();
+          if (corners.length > 0) {
+            //Play random corner if available
+            let index = floor(random(corners.length));
+            spot = available.splice(corners[index], 1)[0];
+          } else {
+            //Play random boxes that are available and are not corners
+            let index = floor(random(available.length));
+            spot = available.splice(index, 1)[0];
+          }
         }
       }
     }
@@ -387,7 +452,7 @@ function draw() {
   //Check for a winner
   let result = checkWinner();
   if (result != null) {
-    noLoop();
+    //noLoop();
 
     if (result == "tie") {
       resultP.html("Tie!");
